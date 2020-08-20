@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react';
 import Dashboard from './components/Dashboard/Dashboard';
 import './App.css';
 
@@ -8,23 +8,38 @@ import MemberRegister from './components/Member/Register';
 import ListMembers from './components/Member/ListMembers';
 import NucleRegister from './components/Nucle/Register';
 import ListNucle from './components/Nucle/ListNucles';
+import LogIn from './components/Login/Login'
 
-import { UserProvider } from '../src/storage/context/UserContext';
-import { TaskProvider } from '../src/storage/context/TaskContext';
-import { NucleProvider } from '../src/storage/context/NucleContext';
+import { SignInContext } from '../src/storage/context/SingInContext';
+
+const PublicRoute = ({ component, ...options }) => {
+  const {isLogged} = useContext(SignInContext);
+  const finalComponent = isLogged() ? Dashboard : component;
+
+  return <Route {...options} component={finalComponent} />;
+};
+
+const PrivateRoute = ({ component, ...options }) => {
+  const {isLogged} = useContext(SignInContext);
+  const finalComponent = isLogged() ? component : LogIn;
+
+  return <Route {...options} component={finalComponent} />;
+};
 
 const App = () => {
+  const {checkToken} = useContext(SignInContext);
+  checkToken();
+
   return(
     <BrowserRouter>
       <Switch>
-        <NucleProvider> <TaskProvider> <UserProvider>
-          <Route path="/" exact={true} component={Dashboard}/>
-          <Route path="/novaAtividade" component={TaskRegister}/>
-          <Route path="/novoMembro" component={MemberRegister}/>
-          <Route path="/listarMembros" component={ListMembers}/>
-          <Route path="/novoNucleo" component={NucleRegister}/>
-          <Route path="/listarNucleos" component={ListNucle}/>
-        </UserProvider> </TaskProvider> </NucleProvider>
+        <PublicRoute  path="/login" component={LogIn}/>
+        <PrivateRoute path="/" exact={true} component={Dashboard}/>
+        <PrivateRoute path="/novaAtividade" component={TaskRegister}/>
+        <PrivateRoute path="/novoMembro" component={MemberRegister}/>
+        <PrivateRoute path="/listarMembros" component={ListMembers}/>
+        <PrivateRoute path="/novoNucleo" component={NucleRegister}/>
+        <PrivateRoute path="/listarNucleos" component={ListNucle}/>
       </Switch>
     </BrowserRouter>
   )
